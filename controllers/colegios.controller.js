@@ -1,13 +1,15 @@
+const pg = require('pg');
 const {response,request}=require('express');
+//configurando pg
+const pool=new pg.Pool({
+    connectionString:'postgres://fl0user:MKaA5RtcvHu7@ep-plain-frog-81092153.ap-southeast-1.aws.neon.tech:5432/taller?sslmode=require',
+    ssl:true
+})
 //mostrar a todos los colegios
-const getAllColegios = (req=request, res=response) => {
+const getAllColegios = async(req=request, res=response) => {
+   const result=await pool.query('select * from colegios');
     const {page=1,limit=10}=req.query;
-    res.json({
-        resp: 'ok',
-        msg: 'mostrar todos los colegios',
-        page,
-        limit
-    });
+    res.json(result.rows);
 }
 
 //crear nuevo colegio
