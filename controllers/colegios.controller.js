@@ -1,30 +1,42 @@
 const pg = require('pg');
 const { response, request } = require('express');
 //configurando pg
-const pool=new pg.Pool({
-    connectionString:'postgres://fl0user:MKaA5RtcvHu7@ep-plain-frog-81092153.ap-southeast-1.aws.neon.tech:5432/taller?sslmode=require',
-    ssl:true
-});
-
-// const pool = new pg.Pool({
-//     user: 'postgres', // Reemplaza con tu nombre de usuario de PostgreSQL
-//     host: 'localhost',  // Reemplaza con la dirección de tu servidor PostgreSQL
-//     database: 'taller', // Reemplaza con el nombre de tu base de datos
-//     password: 'postgres', // Reemplaza con tu contraseña de PostgreSQL
-//     port: 5432 // Reemplaza con el puerto de tu servidor PostgreSQL (por defecto, es 5432)
+// const pool=new pg.Pool({
+//     connectionString:'postgres://fl0user:MKaA5RtcvHu7@ep-plain-frog-81092153.ap-southeast-1.aws.neon.tech:5432/taller?sslmode=require',
+//     ssl:true
 // });
+
+const pool = new pg.Pool({
+    user: 'postgres', // Reemplaza con tu nombre de usuario de PostgreSQL
+    host: 'localhost',  // Reemplaza con la dirección de tu servidor PostgreSQL
+    database: 'taller', // Reemplaza con el nombre de tu base de datos
+    password: 'postgres', // Reemplaza con tu contraseña de PostgreSQL
+    port: 5432 // Reemplaza con el puerto de tu servidor PostgreSQL (por defecto, es 5432)
+});
 
 //mostrar a todos los colegios
 const getAllColegios = async (req = request, res = response) => {
     const query = `
     select c.id_colegio,c.rue,c.nombre,c.estudiantes,c.dependencia,c.nivel,c.estado,
     uc.calle,uc.numero,uc.ciudad,uc.zona,uc.area_geografica,uc.latitud, uc.longitud,
-    cc.tel_fijo,cc.num_celular,cc.email
-    from colegios c, ubicacion_colegio uc, contacto_colegio cc
-            where c.id_colegio=uc.id_colegio and c.id_colegio=cc.id_colegio
+    cc.tel_fijo,cc.num_celular,cc.email,us.usuario,us.estado as estado_usuario
+	from colegios c
+	INNER JOIN 
+	 ubicacion_colegio uc
+	ON 
+	 c.id_colegio=uc.id_colegio
+	INNER JOIN 
+	 contacto_colegio cc
+	ON 
+	 c.id_colegio=cc.id_colegio
+	LEFT JOIN
+	 usuarios us
+	ON
+	 c.usuario=us.usuario
+	ORDER BY c.nombre ASC;		
     `
     const result = await pool.query(query);
-    const { page = 1, limit = 10 } = req.query;
+    // const { page = 1, limit = 10 } = req.query;
     res.json(result.rows);
 }
 
@@ -32,14 +44,30 @@ const getAllColegios = async (req = request, res = response) => {
 const getFindOneColegio = async (req = request, res = response) => {
     const { id } = req.params;
     const query = `
-    select c.id_colegio,c.rue,c.nombre,c.estudiantes,c.dependencia,c.nivel,c.estado,
+   select c.id_colegio,c.rue,c.nombre,c.estudiantes,c.dependencia,c.nivel,c.estado,
     uc.calle,uc.numero,uc.ciudad,uc.zona,uc.area_geografica,uc.latitud, uc.longitud,
-    cc.tel_fijo,cc.num_celular,cc.email
-    from colegios c, ubicacion_colegio uc, contacto_colegio cc
-            where c.id_colegio=uc.id_colegio and c.id_colegio=cc.id_colegio and (c.id_colegio=$1)
+    cc.tel_fijo,cc.num_celular,cc.email,us.usuario,us.estado as estado_usuario,r.nombre as rol
+    from colegios c
+	INNER JOIN 
+	 ubicacion_colegio uc
+	ON 
+	 c.id_colegio=uc.id_colegio
+	INNER JOIN 
+	 contacto_colegio cc
+	ON 
+	 c.id_colegio=cc.id_colegio
+	LEFT JOIN
+	 usuarios us
+	ON
+	 c.usuario=us.usuario
+	LEFT JOIN
+	 roles r
+	ON
+	 us.id_rol=r.id_rol
+     where (c.id_colegio=$1)
     `
     const result = await pool.query(query, [id]);
-    const { page = 1, limit = 10 } = req.query;
+    // const { page = 1, limit = 10 } = req.query;
     res.json(result.rows[0]);//enviando solo el primero 
 }
 
@@ -75,7 +103,7 @@ const postColegio = async (req = request, res = response) => {
     }
 }
 
-//crear nuevo ubicacion del colegio
+//Adicionando la ubicacion del colegio
 const ubicacionColegio = async (req = request, res = response) => {
     //extrtayendo los tados del body
     const { id_colegio, calle, numero, ciudad, zona, ageografica, latitud, longitud } = req.body;
@@ -106,7 +134,7 @@ const ubicacionColegio = async (req = request, res = response) => {
         });
     }
 }
-
+// Adionando el contacto del colegio como ser telefono celular email
 const contactoColegio = async (req = request, res = response) => {
     //extrtayendo los tados del body
     const { id_colegio, telefono, email, celular } = req.body;
@@ -271,6 +299,24 @@ const habilitarColegio = async (req = request, res = response) => {
     }
 }
 
+//funcion para asignar un usuario al colegio
+const AgregarUserCol = async (req = request, res = response) => {
+    const {id}=req.params;
+    const { usuario } = req.body;
+    const consulta = `update colegios set usuario=$1 where id_colegio=$2`;
+    try {
+        await pool.query(consulta, [usuario, id]);
+        res.json({
+            mensaje:"Se actualizo correctamente"
+        })
+    } catch (error) {
+        console.log(error.message);
+        res.json({
+            msg: "Ocurrio un error inesperado, intentelo mas tarde."
+        });
+    }
+}
+
 
 
 
@@ -284,5 +330,6 @@ module.exports = {
     getFindOneColegio,
     updateColegio,
     updateUbicacion,
-    updateContacto
+    updateContacto,
+    AgregarUserCol 
 }

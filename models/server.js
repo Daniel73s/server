@@ -1,5 +1,6 @@
 const express = require('express');
-const  cors = require('cors');
+const cors = require('cors');
+const fileUpload = require('express-fileupload');
 class Server {
 
     constructor() {
@@ -14,7 +15,14 @@ class Server {
 
     //funcion para cargar las rutas
     routes() {
-       this.app.use('/api/colegios',require('../routes/colegios.routes'));
+        this.app.use('/api/auth', require('../routes/auth.routes'));
+        this.app.use('/api/colegios', require('../routes/colegios.routes'));
+        this.app.use('/api/proveedores', require('../routes/proveedores.routes'));
+        this.app.use('/api/categorias', require('../routes/categorias.routes'));
+        this.app.use('/api/productos', require('../routes/productos.routes'));
+        this.app.use('/api/uploads', require('../routes/uploads.routes'));
+        this.app.use('/api/administradores', require('../routes/administradores.routes'));
+        this.app.use('/api/usuarios', require('../routes/usuarios.routes'));
     }
 
 
@@ -25,6 +33,11 @@ class Server {
         this.app.use(express.json());
         // accediendo a la carpeta publica
         this.app.use(express.static('public'));
+        //para manejar la carga de archivos
+        this.app.use(fileUpload({
+            useTempFiles: true,
+            tempFileDir: '/tmp/'
+        }));
     }
 
     //funcion para escuchar el servidor
