@@ -35,12 +35,12 @@ const getAllProductosActivos = async (req = request, res = response) => {
 
 //funcion para crear un nuevo producto
 const createProducto = async (req = request, res = response) => {
-    const { nombre, precio_unitario, tipo, medida, unidad_medida, descripcion, id_categoria, imagen } = req.body;
+    const { nombre, precio_unitario, tipo, medida, unidad_medida, descripcion, id_categoria, imagen,estado } = req.body;
     // console.log('llego',nombre,precio_unitario, tipo, medida, unidad_medida, descripcion,id_categoria,imagen);
-    const consulta = `insert into productos(nombre, precio_unitario, tipo, medida,unidad_medida, descripcion, id_categoria,imagen)
-     VALUES ($1, $2, $3, $4, $5, $6, $7,$8) RETURNING id_producto`;
+   const consulta = `insert into productos(nombre, precio_unitario, tipo, medida,unidad_medida, descripcion, id_categoria,imagen,estado)
+     VALUES ($1, $2, $3, $4, $5, $6, $7,$8,$9) RETURNING id_producto`;
     try {
-        const data = await dbconection.query(consulta, [nombre.toUpperCase(), precio_unitario, tipo, medida, unidad_medida, descripcion.toUpperCase(), id_categoria, imagen]);
+        const data = await dbconection.query(consulta, [nombre.toUpperCase(), precio_unitario, tipo, medida, unidad_medida, descripcion.toUpperCase(), id_categoria, imagen,estado]);
         res.json(
             data.rows[0]
         );
@@ -135,7 +135,7 @@ const detalleProducto = async (req = request, res = response) => {
     const consulta = `
 	select p.id_producto, p.nombre,p.imagen, 
 	p.descripcion,p.tipo,p.medida,p.unidad_medida,
-	p.precio_unitario,p.estado, c.nombre as categoria, pr.razon_social as proveedor,pr.id_proveedor,pr.imagen as imagen_proveedor
+	p.precio_unitario,p.estado, c.nombre as categoria, pr.razon_social as proveedor,pr.limite_entregas,pr.id_proveedor,pr.imagen as imagen_proveedor
 	from productos p, categorias c,proveedores pr, producto_proveedor pp
 	where c.id_categoria=p.id_categoria and 
 	p.id_producto=$1 and pr.id_proveedor=pp.id_proveedor 

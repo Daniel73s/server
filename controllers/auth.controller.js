@@ -26,7 +26,7 @@ const loginApp = async (req = request, res = response) => {
             `
 
         const consulta5 = `
-        	select c.id_colegio,c.nombre as colegio, r.nombre as rol
+        	select c.id_colegio,c.nombre as colegio,c.estudiantes, r.nombre as rol
 	        from colegios c, usuarios u, roles r
 	        where c.usuario=u.usuario and u.id_rol=r.id_rol and u.usuario=$1
           `
@@ -57,8 +57,8 @@ const loginApp = async (req = request, res = response) => {
             id=id_proveedor;
         }else{
             const datacol = await dbconection.query(consulta5,[usuario]);
-            const {id_colegio,colegio,rol}=datacol.rows[0];
-            token = await generarJWT({ id_colegio,colegio,rol });
+            const {id_colegio,colegio,rol,estudiantes}=datacol.rows[0];
+            token = await generarJWT({ id_colegio,colegio,rol,estudiantes });
             id=id_colegio;
         }
         res.json({

@@ -23,6 +23,7 @@ class Server {
         this.app.use('/api/uploads', require('../routes/uploads.routes'));
         this.app.use('/api/administradores', require('../routes/administradores.routes'));
         this.app.use('/api/usuarios', require('../routes/usuarios.routes'));
+        this.app.use('/api/pedidos', require('../routes/pedidos.routes'));
     }
 
 
