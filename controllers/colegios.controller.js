@@ -1,4 +1,5 @@
-const pg = require('pg');
+// const pg = require('pg');
+const dbconection = require('../db/dbconection');
 const { response, request } = require('express');
 //configurando pg
 // const pool=new pg.Pool({
@@ -6,13 +7,13 @@ const { response, request } = require('express');
 //     ssl:true
 // });
 
-const pool = new pg.Pool({
-    user: 'postgres', // Reemplaza con tu nombre de usuario de PostgreSQL
-    host: 'localhost',  // Reemplaza con la dirección de tu servidor PostgreSQL
-    database: 'taller', // Reemplaza con el nombre de tu base de datos
-    password: 'postgres', // Reemplaza con tu contraseña de PostgreSQL
-    port: 5432 // Reemplaza con el puerto de tu servidor PostgreSQL (por defecto, es 5432)
-});
+// const pool = new pg.Pool({
+//     user: 'postgres', // Reemplaza con tu nombre de usuario de PostgreSQL
+//     host: 'localhost',  // Reemplaza con la dirección de tu servidor PostgreSQL
+//     database: 'taller', // Reemplaza con el nombre de tu base de datos
+//     password: 'postgres', // Reemplaza con tu contraseña de PostgreSQL
+//     port: 5432 // Reemplaza con el puerto de tu servidor PostgreSQL (por defecto, es 5432)
+// });
 
 //mostrar a todos los colegios
 const getAllColegios = async (req = request, res = response) => {
@@ -35,7 +36,7 @@ const getAllColegios = async (req = request, res = response) => {
 	 c.usuario=us.usuario
 	ORDER BY c.nombre ASC;		
     `
-    const result = await pool.query(query);
+    const result = await dbconection.query(query);
     // const { page = 1, limit = 10 } = req.query;
     res.json(result.rows);
 }
@@ -66,7 +67,7 @@ const getFindOneColegio = async (req = request, res = response) => {
 	 us.id_rol=r.id_rol
      where (c.id_colegio=$1)
     `
-    const result = await pool.query(query, [id]);
+    const result = await dbconection.query(query, [id]);
     // const { page = 1, limit = 10 } = req.query;
     res.json(result.rows[0]);//enviando solo el primero 
 }
@@ -86,7 +87,7 @@ const postColegio = async (req = request, res = response) => {
 
     try {
         //Realizando la creacion del colegio
-        const result = await pool.query(query, [
+        const result = await dbconection.query(query, [
             rue,
             nombre.toUpperCase(),
             estudiantes,
@@ -115,7 +116,7 @@ const ubicacionColegio = async (req = request, res = response) => {
 
     try {
         //Realizando la creacion del colegio
-        const result = await pool.query(query, [
+        const result = await dbconection.query(query, [
             id_colegio,
             calle.toUpperCase(),
             numero,
@@ -146,7 +147,7 @@ const contactoColegio = async (req = request, res = response) => {
 
     try {
         //Realizando la creacion del colegio
-        await pool.query(query, [
+        await dbconection.query(query, [
             id_colegio,
             telefono,
             celular,
@@ -182,7 +183,7 @@ const updateColegio = async (req = request, res = response) => {
                     RETURNING id_colegio
     `;
 
-    const respuesta = await pool.query(query, [
+    const respuesta = await dbconection.query(query, [
         rue,
         nombre.toUpperCase(),
         estudiantes,
@@ -214,7 +215,7 @@ const updateUbicacion = async (req = request, res = response) => {
     `;
 
 
-    const result = await pool.query(query, [
+    const result = await dbconection.query(query, [
         id,
         calle.toUpperCase(),
         numero,
@@ -243,7 +244,7 @@ const updateContacto = async (req = request, res = response) => {
             SET tel_fijo = $2, num_celular = $3, email = $4
                 WHERE id_colegio = $1;
     `;
-        await pool.query(query, [
+        await dbconection.query(query, [
             id,
             telefono,
             celular,
@@ -266,7 +267,7 @@ const deleteColegio = async (req = request, res = response) => {
     const { id } = req.params;
     const query = `update colegios set estado=false where id_colegio=$1;`;
     try {
-        const result = await pool.query(query, [id]).then(() => {
+        const result = await dbconection.query(query, [id]).then(() => {
             res.json({
                 msg: 'Se dio de baja Correctamente',
                 estado: 'ok'
@@ -285,7 +286,7 @@ const habilitarColegio = async (req = request, res = response) => {
     const { id } = req.params;
     const query = `update colegios set estado=true where id_colegio=$1;`;
     try {
-        const result = await pool.query(query, [id]).then(() => {
+        const result = await dbconection.query(query, [id]).then(() => {
             res.json({
                 msg: 'Se Habilito correctamente',
                 estado: 'ok'
@@ -305,7 +306,7 @@ const AgregarUserCol = async (req = request, res = response) => {
     const { usuario } = req.body;
     const consulta = `update colegios set usuario=$1 where id_colegio=$2`;
     try {
-        await pool.query(consulta, [usuario, id]);
+        await dbconection.query(consulta, [usuario, id]);
         res.json({
             mensaje:"Se actualizo correctamente"
         })

@@ -185,7 +185,6 @@ const deletePedido = async (req = request, res = response) => {
 const fullDetallePedido = async (req = request, res = response) => {
     //obteniendo el id del pedido
     const { id_pedido } = req.params;
-    console.log('mostrar la informacion del pedido ', id_pedido);
     //creamos la consulta
     const consulta = `
             SELECT 
@@ -322,6 +321,32 @@ const modificarEstadoPedido = async (req = request, res = response) => {
     }
 }
 
+//mostrar todos los pedidos
+const getAllPedidos = async (req = request, res = response) => {
+    //creamos la consulta
+    const consulta = `
+      SELECT p.id_pedido, 
+       p.fecha_entrega, 
+	   p.fecha_creacion,
+       p.estado, 
+       dp.cantidad, 
+       pr.razon_social AS proveedor, 
+       pr.limite_entregas,
+	   col.nombre as colegio,
+	   prod.nombre as producto
+    FROM pedidos p
+    INNER JOIN proveedores pr ON pr.id_proveedor = p.id_proveedor
+    INNER JOIN detalle_pedido dp ON dp.id_pedido = p.id_pedido
+	INNER JOIN colegios col ON col.id_colegio = p.id_colegio
+	INNER JOIN productos prod ON prod.id_producto = dp.id_producto
+    ORDER BY p.fecha_entrega ASC
+    `;
+    //ejecutamos la consulta dependiendo de la variable dbconection
+    const response = await dbconection.query(consulta);
+    //enviando la respouesta en formato json
+    res.json(response.rows)
+}
+
 module.exports = {
     getAllPedidosByColegio,
     getPedidosByColegioAndFecha,
@@ -332,5 +357,6 @@ module.exports = {
     deleteDetallePedido,
     fullDetallePedido,
     getPedidosByProveedor,
-    modificarEstadoPedido
+    modificarEstadoPedido,
+    getAllPedidos
 }

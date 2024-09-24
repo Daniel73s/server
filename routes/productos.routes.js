@@ -8,7 +8,8 @@ const { getAllProductos,
     asignarProducto,
     detalleProducto,
     getProductosCategoria,
-    getAllProductosActivos} = require('../controllers/productos.controller');
+    getAllProductosActivos,
+    depurarProductos} = require('../controllers/productos.controller');
 
 const router = Router();
 //solicitar informacion de todas los productos
@@ -26,10 +27,14 @@ router.get('/:id', getOneProducto);
 router.post('/',createProducto);
 //asignar el nuevo producto a un proveedor
 router.post('/asignar',asignarProducto);
+//depurar productos 
+router.patch('/depurar',depurarProductos);
 //actualizar informacion acerca del producto
 router.patch('/:id',updateProducto);
 //actualizar el estado del producto
 router.patch('/estado/:id', UpdateEstadoProducto);
 //actualizar la imagen del producto
 router.patch('/imagen/:id', UpdateImageProducto);
+
+
 module.exports = router;

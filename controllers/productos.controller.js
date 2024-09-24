@@ -35,12 +35,12 @@ const getAllProductosActivos = async (req = request, res = response) => {
 
 //funcion para crear un nuevo producto
 const createProducto = async (req = request, res = response) => {
-    const { nombre, precio_unitario, tipo, medida, unidad_medida, descripcion, id_categoria, imagen,estado } = req.body;
+    const { nombre, precio_unitario, tipo, medida, unidad_medida, descripcion, id_categoria, imagen, estado } = req.body;
     // console.log('llego',nombre,precio_unitario, tipo, medida, unidad_medida, descripcion,id_categoria,imagen);
-   const consulta = `insert into productos(nombre, precio_unitario, tipo, medida,unidad_medida, descripcion, id_categoria,imagen,estado)
+    const consulta = `insert into productos(nombre, precio_unitario, tipo, medida,unidad_medida, descripcion, id_categoria,imagen,estado)
      VALUES ($1, $2, $3, $4, $5, $6, $7,$8,$9) RETURNING id_producto`;
     try {
-        const data = await dbconection.query(consulta, [nombre.toUpperCase(), precio_unitario, tipo, medida, unidad_medida, descripcion.toUpperCase(), id_categoria, imagen,estado]);
+        const data = await dbconection.query(consulta, [nombre.toUpperCase(), precio_unitario, tipo, medida, unidad_medida, descripcion.toUpperCase(), id_categoria, imagen, estado]);
         res.json(
             data.rows[0]
         );
@@ -168,6 +168,33 @@ const getProductosCategoria = async (req = request, res = response) => {
     res.json(response.rows)
 }
 
+//funcion para depurar productos segun su precio
+const depurarProductos = async (req = request, res = response) => {
+    //obtenemos el minimo y maximo valor
+    const { min, max } = req.body;
+    //creamos la consulta
+    const consulta = ` 
+        UPDATE productos
+            SET estado = CASE
+            WHEN precio_unitario BETWEEN $1 AND $2 THEN 'activo'
+            ELSE 'inactivo'                             
+            END;
+    `;
+    try {
+        //ejecutamos la consulta dependiendo de la variable dbconection
+        await dbconection.query(consulta, [min, max]);
+        //enviando la respouesta en formato json
+        res.json({
+            mensaje:'Se acualizo correctamente'
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            mensaje: 'Ocurrio un error al momento de actualizar'
+        })
+    }
+}
+
 
 module.exports = {
     getAllProductos,
@@ -179,5 +206,6 @@ module.exports = {
     asignarProducto,
     detalleProducto,
     getProductosCategoria,
-    getAllProductosActivos
+    getAllProductosActivos,
+    depurarProductos
 }

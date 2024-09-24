@@ -8,7 +8,7 @@ const validarJWT=(req=request,res=response,next)=>{
         });
     }
     try {
-        jwt.verify(token,'danDLP*82123');
+        jwt.verify(token,'dasr*80889');
         next();
     } catch (error) {
         console.log(error);

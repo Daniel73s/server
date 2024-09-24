@@ -50,10 +50,19 @@ const loginApp = async (req = request, res = response) => {
         const { rol } = data.rows[0];
         let token='';
         let id='';
+
+        if (rol==='ADMINISTRADOR') {
+            return res.status(400).json({
+                mensaje: 'Rol no permitido'
+            });
+        }
+
         if (rol == 'PROVEEDOR') {
             const datapro = await dbconection.query(consulta4,[usuario]);
             const {id_proveedor,proveedor,rol}=datapro.rows[0];
             token = await generarJWT({ id_proveedor,proveedor,rol });
+            console.log("imprimir token",token);
+            
             id=id_proveedor;
         }else{
             const datacol = await dbconection.query(consulta5,[usuario]);
@@ -73,7 +82,6 @@ const loginApp = async (req = request, res = response) => {
         return res.status(500).json({ mensaje: 'Ocurrio un error inesperado' })
     }
 }
-
 
 
 module.exports = {
